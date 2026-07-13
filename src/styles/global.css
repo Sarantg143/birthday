@@ -1,0 +1,99 @@
+/* Global styles — dark romantic theme with gold accents */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:wght@400;600;700&display=swap');
+
+:root {
+  --color-bg-dark: #0d0618;
+  --color-bg-purple: #1a0a2e;
+  --color-bg-deep: #2d1b4e;
+  --color-gold: #d4af37;
+  --color-gold-light: #ffd700;
+  --color-gold-glow: rgba(212, 175, 55, 0.4);
+  --color-rose: #e74c3c;
+  --color-rose-light: #ff6b8a;
+  --color-cream: #f5e6d3;
+  --color-parchment: #f4e4bc;
+  --color-text-light: #e8d5b7;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Cormorant Garamond', Georgia, serif;
+  --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-bg-dark);
+  color: var(--color-text-light);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Shared button styles */
+.btn-primary {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 1rem 2.5rem;
+  border: 2px solid var(--color-gold);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05));
+  color: var(--color-gold-light);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+  box-shadow: 0 0 20px var(--color-gold-glow);
+  letter-spacing: 0.05em;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.4), rgba(212, 175, 55, 0.15));
+  box-shadow: 0 0 40px var(--color-gold-glow), 0 0 60px rgba(212, 175, 55, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Page transition wrapper */
+.page-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+}
+
+/* Glow text utility */
+.glow-text {
+  text-shadow: 0 0 10px var(--color-gold-glow), 0 0 30px rgba(212, 175, 55, 0.2);
+}
+
+/* Responsive typography */
+@media (max-width: 768px) {
+  .btn-primary {
+    font-size: 1rem;
+    padding: 0.85rem 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-primary {
+    font-size: 0.95rem;
+    padding: 0.75rem 1.5rem;
+  }
+
+}

@@ -1,0 +1,240 @@
+/* Love letter — royal scroll / parchment styling */
+.letter-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: radial-gradient(ellipse at center, #1a0a2e 0%, #0d0618 100%);
+  position: relative;
+  overflow-y: auto;
+}
+
+.letter-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* Scroll container — handles the unfolding animation */
+.scroll-container {
+  perspective: 1200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 700px;
+  padding: 2rem 1.5rem;
+}
+
+.scroll-wrapper {
+  position: relative;
+  width: 100%;
+  transform-origin: center top;
+}
+
+/* Rolled scroll ends (top and bottom cylinders) */
+.scroll-roll {
+  height: 30px;
+  background: linear-gradient(180deg, #8b6914 0%, #d4af37 30%, #b8860b 60%, #8b6914 100%);
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 3;
+}
+
+.scroll-roll-top {
+  margin-bottom: -5px;
+}
+
+.scroll-roll-bottom {
+  margin-top: -5px;
+}
+
+/* Parchment body */
+.parchment {
+  background:
+    linear-gradient(135deg, rgba(139, 105, 20, 0.1) 0%, transparent 50%),
+    linear-gradient(225deg, rgba(139, 69, 19, 0.08) 0%, transparent 50%),
+    linear-gradient(to bottom, #f4e4bc 0%, #ede0c8 20%, #f0dcb0 50%, #e8d5a8 80%, #dcc896 100%);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.4),
+    inset 0 0 60px rgba(139, 105, 20, 0.1),
+    inset 0 0 20px rgba(255, 255, 255, 0.3);
+  padding: 1cm;
+  position: relative;
+  overflow-y: auto;
+  max-height: 70vh;
+  transform-origin: center top;
+}
+
+/* Parchment texture overlay */
+.parchment::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.parchment::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(to bottom, rgba(139, 105, 20, 0.15), transparent);
+  pointer-events: none;
+}
+
+.letter-content {
+  position: relative;
+  z-index: 1;
+  color: #3d2a1a;
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  line-height: 1.9;
+  text-align: left;
+  padding: 0 1cm;
+}
+
+/* Decorative vertical border lines on left and right */
+.letter-content::before,
+.letter-content::after {
+  content: '';
+  position: absolute;
+  top: -0.5cm;
+  bottom: -0.5cm;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    transparent 5%,
+    rgba(139, 105, 20, 0.25) 15%,
+    rgba(139, 105, 20, 0.35) 50%,
+    rgba(139, 105, 20, 0.25) 85%,
+    transparent 95%
+  );
+  pointer-events: none;
+}
+
+.letter-content::before {
+  left: 0;
+}
+
+.letter-content::after {
+  right: 0;
+}
+
+.letter-content p {
+  margin-bottom: 0.8rem;
+  opacity: 0;
+  animation: fade-in-line 0.6s ease forwards;
+}
+
+.letter-greeting {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 3vw, 1.6rem);
+  font-weight: 700;
+  color: #5c3d2e;
+  margin-bottom: 1.5rem;
+}
+
+.letter-signature {
+  font-family: var(--font-display);
+  font-style: cursive;
+  font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+  color: #5c3d2e;
+  margin-top: 2rem;
+  text-align: right;
+}
+
+.letter-glow {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: letter-glow-pulse 3s ease-in-out infinite;
+}
+
+@keyframes letter-glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Custom scrollbar for parchment */
+.parchment::-webkit-scrollbar {
+  width: 6px;
+}
+
+.parchment::-webkit-scrollbar-track {
+  background: rgba(139, 105, 20, 0.1);
+  border-radius: 3px;
+}
+
+.parchment::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #d4af37, #b8860b);
+  border-radius: 3px;
+}
+
+.parchment::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
+}
+
+@keyframes fade-in-line {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.letter-continue-btn {
+  margin-top: 2.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.letter-wax-seal {
+  position: absolute;
+  bottom: -72rem;
+  right: 10rem;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle, #8b0000 0%, #5c0000 100%);
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  z-index: 2;
+  opacity: 0.9;
+}
+
+
+
+@media (max-width: 768px) {
+  .parchment {
+    padding: 0.8cm;
+  }
+
+  .letter-wax-seal {
+    width: 45px;
+    height: 45px;
+    font-size: 1.2rem;
+    bottom: 1.5rem;
+    right: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .parchment {
+    padding: 0.6cm;
+  }
+
+  .scroll-roll {
+    height: 20px;
+  }
+}

@@ -1,0 +1,157 @@
+/* Success / celebration page */
+.success-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem 4rem;
+  background: radial-gradient(ellipse at 50% 20%, #2d1b4e 0%, #1a0a2e 50%, #0d0618 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.success-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 700;
+  color: var(--color-gold-light);
+  text-align: center;
+  margin-bottom: 1rem;
+  z-index: 2;
+  position: relative;
+}
+
+.success-heart {
+  font-size: clamp(3rem, 10vw, 5rem);
+  margin-bottom: 1.5rem;
+  z-index: 2;
+  position: relative;
+  filter: drop-shadow(0 0 20px rgba(231, 76, 60, 0.6));
+}
+
+.success-thankyou {
+  font-family: var(--font-body);
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  color: var(--color-text-light);
+  text-align: center;
+  margin-bottom: 2.5rem;
+  font-style: italic;
+  z-index: 2;
+  position: relative;
+}
+
+.success-gallery {
+  width: 100%;
+  max-width: 700px;
+  margin-bottom: 2rem;
+  z-index: 2;
+  position: relative;
+}
+
+/* Image carousel */
+.carousel {
+  position: relative;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 30px var(--color-gold-glow);
+  border: 2px solid rgba(212, 175, 55, 0.3);
+}
+
+.carousel-image {
+  width: 100%;
+  height: clamp(250px, 50vw, 400px);
+  object-fit: cover;
+  display: block;
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--color-gold);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.carousel-dot.active {
+  background: var(--color-gold);
+  box-shadow: 0 0 10px var(--color-gold-glow);
+}
+
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(13, 6, 24, 0.7);
+  border: 1px solid var(--color-gold);
+  color: var(--color-gold-light);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  z-index: 3;
+}
+
+.carousel-nav:hover {
+  background: rgba(212, 175, 55, 0.2);
+}
+
+.carousel-prev {
+  left: 0.75rem;
+}
+
+.carousel-next {
+  right: 0.75rem;
+}
+
+/* Fireworks canvas overlay */
+.fireworks-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Celebration sparkles */
+.success-sparkle {
+  position: absolute;
+  font-size: 1.5rem;
+  animation: sparkle-float 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes sparkle-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+    opacity: 0.8;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-nav {
+    width: 34px;
+    height: 34px;
+    font-size: 1rem;
+  }
+}

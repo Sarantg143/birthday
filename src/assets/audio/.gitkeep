@@ -1,0 +1,3 @@
+# Place your romantic background music file here (e.g. romantic-music.mp3)
+# Supported formats: .mp3, .wav, .ogg
+# Update the path in src/config/appConfig.js if using a different filename
