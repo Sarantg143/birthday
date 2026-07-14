@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import nodemailer from 'nodemailer';
 import 'dotenv/config';
 
 const app = express();
@@ -10,15 +9,50 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Create Nodemailer transporter using Gmail SMTP
-function createTransporter() {
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-  });
+const RESEND_API_URL = 'https://api.resend.com/emails';
+
+/**
+ * Send an email via Resend's HTTP API.
+ * Uses standard HTTPS (port 443) — never blocked by Render.
+ */
+async function sendEmailViaResend({ to, subject, html }) {
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+
+  // 30-second timeout to prevent hanging requests
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    const response = await fetch(RESEND_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [to],
+        subject,
+        html,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || data.error || `Resend API error (${response.status})`);
+    }
+
+    return data;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Resend API request timed out after 30 seconds');
+    }
+    throw error;
+  }
 }
 
 /**
@@ -32,13 +66,12 @@ app.post('/api/send-email', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Recipient email (to) is required' });
   }
 
-  const transporter = createTransporter();
-
   try {
-    const info = await transporter.sendMail({
-      from: process.env.GMAIL_USER,
+    console.log('📧 Sending email via Resend to:', to);
+
+    const result = await sendEmailViaResend({
       to,
-      subject: subject || 'She Accepted Your Love ❤️',
+      subject: subject || 'She Said YES! ❤️',
       html: `
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #fef9f0; border-radius: 12px;">
           <div style="text-align: center; margin-bottom: 20px;">
@@ -60,10 +93,10 @@ app.post('/api/send-email', async (req, res) => {
       `,
     });
 
-    console.log('✅ Email sent successfully. Message ID:', info.messageId);
-    res.json({ success: true, messageId: info.messageId });
+    console.log('✅ Email sent successfully. Resend ID:', result.id);
+    res.json({ success: true, messageId: result.id });
   } catch (error) {
-    console.error('❌ Nodemailer error:', error);
+    console.error('❌ Resend API error:', error);
     res.status(500).json({ success: false, message: error.message || 'Failed to send email' });
   }
 });
@@ -75,7 +108,8 @@ app.get('/api/health', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`📧 Email server running on http://localhost:${PORT}`);
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    console.warn('⚠️  GMAIL_USER and GMAIL_APP_PASSWORD must be set in server/.env');
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('⚠️  RESEND_API_KEY must be set in server/.env');
+    console.warn('    Get one at https://resend.com/api-keys');
   }
 });

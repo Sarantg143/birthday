@@ -31,5 +31,5 @@ export const appConfig = {
   notificationEmail: 'sarantg1905@gmail.com',
 
   // Email server URL (the Express server running Nodemailer)
-  emailServerUrl: 'http://localhost:3001',
+  emailServerUrl: 'https://birthday-5wrc.onrender.com',
 };
