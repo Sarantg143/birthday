@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import nodemailer from 'nodemailer';
 import 'dotenv/config';
 
 const app = express();
@@ -9,50 +10,95 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-const RESEND_API_URL = 'https://api.resend.com/emails';
+let _transporter = null;
 
 /**
- * Send an email via Resend's HTTP API.
- * Uses standard HTTPS (port 443) — never blocked by Render.
+ * Create and cache a Nodemailer transporter.
+ * Priority:
+ *   1. GMAIL_USER + GMAIL_APP_PASSWORD (auto-configures Gmail SMTP)
+ *   2. SMTP_HOST + SMTP_USER + SMTP_PASS (custom SMTP provider)
+ *   3. Ethereal test account (preview-only, no real delivery)
+ * The transporter is created once and reused across all requests.
  */
-async function sendEmailViaResend({ to, subject, html }) {
-  const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+async function getTransporter() {
+  if (_transporter) return _transporter;
 
-  // 30-second timeout to prevent hanging requests
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-  try {
-    const response = await fetch(RESEND_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
+  // Priority 1: Gmail credentials
+  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+    console.log('📧 Configuring Gmail SMTP...');
+    _transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
       },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: [to],
-        subject,
-        html,
-      }),
-      signal: controller.signal,
     });
-
-    clearTimeout(timeoutId);
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || data.error || `Resend API error (${response.status})`);
-    }
-
-    return data;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error.name === 'AbortError') {
-      throw new Error('Resend API request timed out after 30 seconds');
-    }
-    throw error;
+    console.log(`📧 Gmail SMTP configured for: ${process.env.GMAIL_USER}`);
+    return _transporter;
   }
+
+  // Priority 2: Custom SMTP provider
+  if (process.env.SMTP_HOST) {
+    _transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587', 10),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+    return _transporter;
+  }
+
+  // Priority 3: Ethereal test account
+  console.log('📧 No SMTP configured — creating Ethereal test account...');
+  const testAccount = await nodemailer.createTestAccount();
+  _transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    secure: false,
+    auth: {
+      user: testAccount.user,
+      pass: testAccount.pass,
+    },
+  });
+  console.log('📧 Ethereal test account created:');
+  console.log(`   User: ${testAccount.user}`);
+  console.log(`   Pass: ${testAccount.pass}`);
+  console.log('   Preview URL will appear in logs when sending.');
+
+  return _transporter;
+}
+
+/**
+ * Send an email via Nodemailer.
+ */
+async function sendEmailViaNodemailer({ to, subject, html }) {
+  const fromName = process.env.SMTP_FROM_NAME || 'Happy Birthday';
+  const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.GMAIL_USER || 'noreply@happybirthday.love';
+
+  const transporter = await getTransporter();
+
+  const info = await transporter.sendMail({
+    from: `"${fromName}" <${fromEmail}>`,
+    to,
+    subject,
+    html,
+  });
+
+  // Log preview URL for Ethereal emails
+  if (info.messageId) {
+    console.log('📧 Message ID:', info.messageId);
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+    if (previewUrl) {
+      console.log('📧 Preview URL:', previewUrl);
+    }
+  }
+
+  return info;
 }
 
 /**
@@ -67,9 +113,9 @@ app.post('/api/send-email', async (req, res) => {
   }
 
   try {
-    console.log('📧 Sending email via Resend to:', to);
+    console.log('📧 Sending email via Nodemailer to:', to);
 
-    const result = await sendEmailViaResend({
+    const result = await sendEmailViaNodemailer({
       to,
       subject: subject || 'She Said YES! ❤️',
       html: `
@@ -93,10 +139,10 @@ app.post('/api/send-email', async (req, res) => {
       `,
     });
 
-    console.log('✅ Email sent successfully. Resend ID:', result.id);
-    res.json({ success: true, messageId: result.id });
+    console.log('✅ Email sent successfully. Message ID:', result.messageId);
+    res.json({ success: true, messageId: result.messageId });
   } catch (error) {
-    console.error('❌ Resend API error:', error);
+    console.error('❌ Nodemailer error:', error);
     res.status(500).json({ success: false, message: error.message || 'Failed to send email' });
   }
 });
@@ -108,8 +154,15 @@ app.get('/api/health', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`📧 Email server running on http://localhost:${PORT}`);
-  if (!process.env.RESEND_API_KEY) {
-    console.warn('⚠️  RESEND_API_KEY must be set in server/.env');
-    console.warn('    Get one at https://resend.com/api-keys');
+
+  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+    console.log(`📧 Sending real emails via Gmail (${process.env.GMAIL_USER})`);
+  } else if (process.env.SMTP_HOST) {
+    console.log(`📧 Sending real emails via ${process.env.SMTP_HOST}`);
+  } else {
+    console.log('ℹ️  No SMTP configured — using Ethereal test email (preview only).');
+    console.log('   To send real emails, add these to server/.env:');
+    console.log('   GMAIL_USER=your.email@gmail.com');
+    console.log('   GMAIL_APP_PASSWORD=your-16-char-app-password');
   }
 });
