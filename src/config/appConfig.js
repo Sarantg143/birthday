@@ -28,8 +28,8 @@ export const appConfig = {
 
   // Recipient email address for the love acceptance notification
   // This email will receive a notification when your loved one says YES
-  notificationEmail: 'sarantg1905@gmail.com',
+  notificationEmail: 'mailtosarantg@gmail.com', //sarantg1905@gmail.com',
 
   // Email server URL (the Express server running Nodemailer)
-  emailServerUrl: 'https://birthday-5wrc.onrender.com',
+  emailServerUrl: 'https://birthday-5wrc.onrender.com', //'http://localhost:3001', //'https://birthday-5wrc.onrender.com',
 };
